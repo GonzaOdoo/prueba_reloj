@@ -3,6 +3,8 @@ import datetime
 import logging
 from collections import defaultdict
 from datetime import datetime
+from . import base
+import socket
 
 import pytz
 
@@ -14,7 +16,7 @@ from datetime import datetime, timedelta, time
 _logger = logging.getLogger(__name__)
 
 try:
-    from zk import ZK, const
+    from .base import ZK, const
 except ImportError:
     _logger.error("Please Install pyzk library.")
 
@@ -51,6 +53,54 @@ class BiometricDeviceDetails(models.Model):
             return False
 
 
+
+
+    def test_vanshui_connection(self):
+        ip = self.device_ip
+        port = self.port_number
+        timeout = 5
+    
+        # --- Paso 1: Autenticación con CommKey 0 ---
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
+            sock.connect((ip, port))
+    
+            # Enviar CommKey 0
+            auth_command = "~Pin=0\r\n"
+            sock.send(auth_command.encode('ascii'))
+            auth_response = sock.recv(1024).decode('ascii', errors='ignore')
+            _logger.info(f"Respuesta de autenticación: [{auth_response.strip()}]")
+    
+            # --- Paso 2: Enviar comando ~Platform ---
+            platform_command = "~Platform\r\n"
+            sock.send(platform_command.encode('ascii'))
+            platform_response = sock.recv(1024).decode('ascii', errors='ignore')
+            _logger.info(f"Respuesta de Platform: [{platform_response.strip()}]")
+    
+            # --- Paso 3: Enviar comando ~Device ---
+            device_command = "~Device\r\n"
+            sock.send(device_command.encode('ascii'))
+            device_response = sock.recv(1024).decode('ascii', errors='ignore')
+            _logger.info(f"Respuesta de Device: [{device_response.strip()}]")
+    
+            sock.close()
+    
+            # Si alguna respuesta no está vacía, ¡éxito!
+            if platform_response.strip() or device_response.strip():
+                _logger.info("🎉 ¡ÉXITO! El reloj respondió a un comando.")
+                return True
+    
+        except Exception as e:
+            _logger.error(f"Error: {str(e)}")
+            return False
+    
+        _logger.error("❌ El reloj no respondió a ningún comando.")
+        return False
+
+    
+       
+        
     @api.model
     def cron_download_attendance(self):
         """cron_download method: Perform a cron job to download attendance data for all machines.
@@ -80,7 +130,7 @@ class BiometricDeviceDetails(models.Model):
     
         if self.port_number:
             zk_1 = ZK(self.device_ip, port=self.port_number, timeout=30,
-                      password=False, ommit_ping=self.ommit_ping)
+                      password=False,force_udp=True, ommit_ping=self.ommit_ping)
             try:
                 conn = zk_1.connect()
                 if conn:

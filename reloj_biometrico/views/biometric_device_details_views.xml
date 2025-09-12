@@ -19,32 +19,46 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                     <button name="action_set_timezone" string=" Set Time"
-                            type="object" class="oe_highlight"/>
                     <button name="action_download_attendance"
                             string="Download Data"
+                            icon="fa-download "
                             type="object" class="oe_highlight"/>
-                    <button name="action_clear_attendance" string="Clear Data"
-                            type="object" class="oe_highlight"
-                            confirm="Are you sure you want to clear all
-                            attendance records from the Device and Odoo?"/>
                     <button name="action_restart_device" string="Restart"
                             type="object" class="oe_highlight"
+                            icon="fa-refresh"
                             confirm="Are you sure you want Restart the Biometric
                             Device?"/>
+                    <button name="clean_logs" string="Limpiar logs"
+                            type="object"
+                            icon="fa-refresh"
+                            confirm="Eliminar logs?"/>
                 </header>
                 <sheet>
                     <group>
-                        <field name="name"/>
-                        <field name="device_ip"/>
-                        <field name="port_number"/>
-                        <field name="address_id"/>
+                        <group>
+                            <field name="name"/>
+                            <field name="device_ip"/>
+                            <label for="date_to" string="Date Range"/>
+                            <div>
+                                <field name="date_to" class="oe_inline" widget="daterange"/>
+                                <field name="date_from" class="oe_inline"/>
+                            </div>
+                            <field name="ommit_ping"/>
+                        </group>
+                        <group>
+                            <field name="port_number"/>
+                            <field name="port_number2"/>
+                            <field name="port_number3"/>
+                        </group>
                     </group>
+
+
                     <button name="action_test_connection"
                             type="object" class="btn btn-secondary">
                         <i class="fa fa-fw o_button_icon fa-television"/>
                         Test Connection
                     </button>
+                    <field name="log_details" placeholder="Logs de conexión..." readonly="1"/>
                 </sheet>
             </form>
         </field>
