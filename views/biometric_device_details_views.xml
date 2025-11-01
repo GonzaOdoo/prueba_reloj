@@ -44,6 +44,7 @@
                                 <field name="date_from" class="oe_inline"/>
                             </div>
                             <field name="ommit_ping"/>
+                            <field name="pin" widget="password"/>
                         </group>
                         <group>
                             <field name="port_number"/>

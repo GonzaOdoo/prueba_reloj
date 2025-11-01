@@ -1623,6 +1623,8 @@ class ZK(object):
         record_size = total_size // self.records
         if self.verbose: print ("record_size is ", record_size)
         attendance_data = attendance_data[4:]
+        _logger.info(attendance_data)
+        _logger.info(size)
         if record_size == 8:
             while len(attendance_data) >= 8:
                 uid, status, timestamp, punch = unpack('HB4sB', attendance_data.ljust(8, b'\x00')[:8])
