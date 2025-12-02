@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, time
 _logger = logging.getLogger(__name__)
 
 try:
-    from zk import ZK, const
+    from .base import ZK, const
 except ImportError:
     _logger.error("Please Install pyzk library.")
 
