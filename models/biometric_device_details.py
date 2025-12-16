@@ -825,10 +825,11 @@ class BiometricDeviceDetails(models.Model):
                         _logger.info(f"⏭️ Ignorando registro con status=16: {each}")
                         continue
                     atten_time = each.timestamp
-                    local_tz = pytz.timezone('America/Asuncion')
-                    local_dt = local_tz.localize(atten_time, is_dst=None)
-                    utc_dt = local_dt.astimezone(pytz.utc)
-                    atten_time_datetime = utc_dt.replace(tzinfo=None)
+                    # Aseguramos que sea naive
+                    if hasattr(atten_time, 'tzinfo') and atten_time.tzinfo is not None:
+                        atten_time = atten_time.replace(tzinfo=None)
+                    # Sumamos 3 horas para obtener el equivalente en UTC
+                    atten_time_datetime = atten_time + timedelta(hours=6)
                     _logger.info(f"🔍 PUNCH VALUE: {each.punch} | TYPE: {type(each.punch)}")
                     if atten_time_datetime <= last_download:
                         _logger.info(f"⏭️ Registro ya procesado anteriormente: {atten_time_datetime} (última descarga: {last_download})")
