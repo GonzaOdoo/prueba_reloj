@@ -829,7 +829,7 @@ class BiometricDeviceDetails(models.Model):
                     if hasattr(atten_time, 'tzinfo') and atten_time.tzinfo is not None:
                         atten_time = atten_time.replace(tzinfo=None)
                     # Sumamos 3 horas para obtener el equivalente en UTC
-                    atten_time_datetime = atten_time + timedelta(hours=6)
+                    atten_time_datetime = atten_time + timedelta(hours=3)
                     _logger.info(f"🔍 PUNCH VALUE: {each.punch} | TYPE: {type(each.punch)}")
                     if atten_time_datetime <= last_download:
                         _logger.info(f"⏭️ Registro ya procesado anteriormente: {atten_time_datetime} (última descarga: {last_download})")
