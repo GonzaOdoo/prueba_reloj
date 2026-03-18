@@ -2,7 +2,7 @@
 import datetime
 import logging
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 
@@ -48,6 +48,7 @@ class BiometricDeviceDetails(models.Model):
         help='Marca la última marca de asistencia descargada para evitar duplicados.'
     )
     pin = fields.Char(string="PIN", size=4)
+    last_error_mail = fields.Datetime("Último error enviado")
 
     @api.constrains('pin')
     def _check_pin_is_numeric(self):
@@ -802,6 +803,12 @@ class BiometricDeviceDetails(models.Model):
                 conn = self.device_connect(zk)
                 if not conn:
                     log_append(f"❌ No se pudo conectar al dispositivo en {machine_ip}:{zk_port}")
+                    body = self._build_error_email_body(f"No se pudo conectar al dispositivo en {machine_ip}:{zk_port}", log_message)
+                    self._send_support_email(
+                        subject=f"[ERROR] Biometrico {self.name} - Sin conexión",
+                        body=body
+                    )
+                    self.last_error_mail = fields.Datetime.now()
                     continue
     
                 log_append(f"✅ Conexión exitosa a {machine_ip}:{zk_port}")
@@ -909,6 +916,38 @@ class BiometricDeviceDetails(models.Model):
             }
         }
 
+    def _send_support_email(self, subject, body):
+        if not self.support_mail:
+            return
+    
+        mail_values = {
+            'subject': subject,
+            'body_html': body,
+            'email_to': self.support_mail,
+            'email_from': self.env.user.email or 'noreply@odoo.com',
+        }
+    
+        mail = self.env['mail.mail'].create(mail_values)
+        mail.send()
+
+    def _build_error_email_body(self, error_message, log_message):
+        return f"""
+            <h3>❌ Error al conectar con dispositivo biométrico</h3>
+    
+            <p><strong>Dispositivo:</strong> {self.name}</p>
+            <p><strong>IP:</strong> {self.device_ip}</p>
+            <p><strong>Puerto:</strong> {self.port_number}</p>
+            <p><strong>Empresa:</strong> {self.company_id.name}</p>
+            <p><strong>Fecha:</strong> {datetime.now()}</p>
+    
+            <hr/>
+    
+            <p><strong>Error:</strong></p>
+            <pre>{error_message}</pre>
+    
+            <p><strong>Log completo:</strong></p>
+            <pre>{log_message}</pre>
+        """
 
 class ZKAttendanceRaw(models.Model):
     _name = 'zk.attendance.raw'
