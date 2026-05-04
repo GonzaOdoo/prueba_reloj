@@ -954,7 +954,7 @@ class ZKAttendanceRaw(models.Model):
     _description = 'Registros crudos de asistencia desde dispositivo ZK'
     _order = 'timestamp desc'
 
-    device_id = fields.Many2one('zk.machine', string='Dispositivo', required=True)
+    device_id = fields.Many2one('biometric.device.details', string='Dispositivo', required=True)
     user_id = fields.Char(string='ID de Usuario en Dispositivo', required=True)
     timestamp = fields.Datetime(string='Fecha/Hora de Marca', required=True)
     punch = fields.Integer(string='Tipo de Marca')  # 0 = entrada, 1 = salida, otros = ?
